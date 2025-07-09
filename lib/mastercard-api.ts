@@ -5,13 +5,38 @@ interface MastercardConfig {
   environment: "sandbox" | "production"
 }
 
+// Update the BINLookupResponse interface to match the actual API response
 interface BINLookupResponse {
-  bin: string
-  brand: string
-  issuer: string
-  country: string
-  cardType: string
-  isValid: boolean
+  lowAccountRange: number
+  highAccountRange: number
+  binNum: string
+  binLength: number
+  acceptanceBrand: string
+  ica: string
+  customerName: string
+  country: {
+    code: number
+    alpha3: string
+    name: string
+  }
+  localUse: boolean
+  authorizationOnly: boolean
+  productCode: string
+  productDescription: string
+  governmentRange: boolean
+  nonReloadableIndicator: boolean
+  anonymousPrepaidIndicator: string
+  cardholderCurrencyIndicator: string
+  programName: string | null
+  vertical: string | null
+  fundingSource: string
+  consumerType: string
+  smartDataEnabled: boolean
+  affiliate: string | null
+  comboCardIndicator: string
+  flexCardIndicator: string
+  gamblingBlockEnabled: boolean
+  paymentAccountType: string
 }
 
 export class MastercardAPIClient {
@@ -51,37 +76,37 @@ export class MastercardAPIClient {
     return btoa(body) // Placeholder
   }
 
-  // BIN Lookup API call
-  async lookupBIN(bin: string): Promise<BINLookupResponse> {
-    const url = `${this.baseUrl}/bin-lookup/v1/bin/${bin}`
-    const authHeader = this.generateAuthHeader("GET", url)
+  // Update the lookupBIN method to use the correct endpoint and request format
+  async lookupBIN(accountRange: string): Promise<BINLookupResponse | null> {
+    const url = `${this.baseUrl}/bin-ranges/account-searches`
+    const body = JSON.stringify({
+      accountRange: accountRange,
+    })
+
+    const authHeader = this.generateAuthHeader("POST", url, body)
 
     try {
       const response = await fetch(url, {
-        method: "GET",
+        method: "POST",
         headers: {
           Authorization: authHeader,
           "Content-Type": "application/json",
           Accept: "application/json",
         },
+        body,
       })
 
       if (!response.ok) {
         throw new Error(`API call failed: ${response.status}`)
       }
 
-      const data = await response.json()
-      return {
-        bin: data.bin,
-        brand: data.brand,
-        issuer: data.issuer,
-        country: data.country,
-        cardType: data.cardType,
-        isValid: data.isValid,
-      }
+      const data: BINLookupResponse[] = await response.json()
+
+      // API returns an array, we'll take the first result
+      return data.length > 0 ? data[0] : null
     } catch (error) {
-      console.error("Mastercard API Error:", error)
-      throw error
+      console.error("Mastercard BIN Lookup API Error:", error)
+      return null
     }
   }
 

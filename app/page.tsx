@@ -25,6 +25,9 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 
+// Import the new BIN Lookup component
+import { BINLookupCard } from "@/components/bin-lookup-card"
+
 export default function CreditCardValidator() {
   const [cardNumber, setCardNumber] = useState("")
   const [cardType, setCardType] = useState("visa")
@@ -1714,6 +1717,12 @@ export default function CreditCardValidator() {
           description: `${filteredBulkCheckResults.length} kart bilgisi panoya kopyalandı.`,
           duration: 2000,
         })
+      } else {
+        toast({
+          title: "Kopyalama Başarısız",
+          description: "Kart bilgileri kopyalanamadı. Lütfen manuel olarak kopyalayın.",
+          variant: "destructive",
+        })
       }
     }
   }
@@ -2172,6 +2181,8 @@ export default function CreditCardValidator() {
           </div>
         </CardBody>
       </Card>
+      {/* BIN Lookup Card - Add this after the Live Checker Card */}
+      <BINLookupCard cardNumber={cardNumber} />
       {/* Recently Checked Cards */}
       <Card className="mb-6">
         <CardHeader>
